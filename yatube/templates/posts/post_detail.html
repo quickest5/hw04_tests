@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}
+Пост {{ post.text|truncatechars:30 }}
+{% endblock %}
+{% block content %}
+  <div class="row">
+  <aside class="col-12 col-md-3">
+    {% include 'posts/includes/posts.html' %}
+    </ul>
+  </aside>
+  <article class="col-12 col-md-9">
+    <p>
+      {{ post.text }} 
+    </p>
+  </article>
+</div>
+{% endblock %}
