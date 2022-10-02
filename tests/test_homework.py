@@ -145,8 +145,10 @@ class TestGroup:
     def test_group_model(self):
         model_fields = Group._meta.fields
         title_field = search_field(model_fields, 'title')
-        assert title_field is not None, 'Добавьте'
-        + 'название события `title` модели `Group`'
+        assert title_field is not None, (
+            'Добавьте'
+            + 'название события `title` модели `Group`'
+        )
         assert type(title_field) == fields.CharField, (
             'Свойство `title` модели `Group`'
             + 'должно быть символьным `CharField`'
