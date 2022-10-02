@@ -37,40 +37,58 @@ class TestPost:
     def test_post_model(self):
         model_fields = Post._meta.fields
         text_field = search_field(model_fields, 'text')
-        assert text_field is not None, 'Добавьте название события `text` модели `Post`'
+        assert text_field is not None, (
+            'Добавьте название события `text` модели `Post`'
+        )
         assert type(text_field) == fields.TextField, (
             'Свойство `text` модели `Post` должно быть текстовым `TextField`'
         )
 
         pub_date_field = search_field(model_fields, 'pub_date')
-        assert pub_date_field is not None, 'Добавьте дату и время проведения события `pub_date` модели `Post`'
-        assert type(pub_date_field) == fields.DateTimeField, (
-            'Свойство `pub_date` модели `Post` должно быть датой и время `DateTimeField`'
+        assert pub_date_field is not None, (
+            'Добавьте дату и время проведения события `pub_date` модели `Post`'
         )
-        assert pub_date_field.auto_now_add, 'Свойство `pub_date` модели `Post` должно быть `auto_now_add`'
+        assert type(pub_date_field) == fields.DateTimeField, (
+            'Свойство `pub_date` модели `Post`'
+            + ' должно быть датой и время `DateTimeField`'
+        )
+        assert pub_date_field.auto_now_add, (
+            'Свойство `pub_date` модели `Post` должно быть `auto_now_add`'
+        )
 
         author_field = search_field(model_fields, 'author_id')
-        assert author_field is not None, 'Добавьте пользователя, автор который создал событие `author` модели `Post`'
+        assert author_field is not None, (
+            'Добавьте пользователя, автор'
+            + ' который создал событие `author` модели `Post`'
+        )
         assert type(author_field) == fields.related.ForeignKey, (
-            'Свойство `author` модели `Post` должно быть ссылкой на другую модель `ForeignKey`'
+            'Свойство `author` модели `Post`'
+            + ' должно быть ссылкой на другую модель `ForeignKey`'
         )
         assert author_field.related_model == get_user_model(), (
-            'Свойство `author` модели `Post` должно быть ссылкой на модель пользователя `User`'
+            'Свойство `author` модели `Post` '
+            + 'должно быть ссылкой на модель пользователя `User`'
         )
 
         group_field = search_field(model_fields, 'group_id')
-        assert group_field is not None, 'Добавьте свойство `group` в модель `Post`'
+        assert group_field is not None, (
+            'Добавьте свойство `group` в модель `Post`'
+        )
         assert type(group_field) == fields.related.ForeignKey, (
-            'Свойство `group` модели `Post` должно быть ссылкой на другую модель `ForeignKey`'
+            'Свойство `group` модели `Post` '
+            + 'должно быть ссылкой на другую модель `ForeignKey`'
         )
         assert group_field.related_model == Group, (
-            'Свойство `group` модели `Post` должно быть ссылкой на модель `Group`'
+            'Свойство `group` модели `Post`'
+            + ' должно быть ссылкой на модель `Group`'
         )
         assert group_field.blank, (
-            'Свойство `group` модели `Post` должно быть с атрибутом `blank=True`'
+            'Свойство `group` модели `Post`'
+            + ' должно быть с атрибутом `blank=True`'
         )
         assert group_field.null, (
-            'Свойство `group` модели `Post` должно быть с атрибутом `null=True`'
+            'Свойство `group` модели `Post`'
+            + ' должно быть с атрибутом `null=True`'
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -87,18 +105,23 @@ class TestPost:
     def test_post_admin(self):
         admin_site = site
 
-        assert Post in admin_site._registry, 'Зарегестрируйте модель `Post` в админской панели'
+        assert Post in admin_site._registry, (
+            'Зарегестрируйте модель `Post` в админской панели'
+        )
 
         admin_model = admin_site._registry[Post]
 
         assert 'text' in admin_model.list_display, (
-            'Добавьте `text` для отображения в списке модели административного сайта'
+            'Добавьте `text` для отображения в '
+            + 'списке модели административного сайта'
         )
         assert 'pub_date' in admin_model.list_display, (
-            'Добавьте `pub_date` для отображения в списке модели административного сайта'
+            'Добавьте `pub_date` для отображения в'
+            + ' списке модели административного сайта'
         )
         assert 'author' in admin_model.list_display, (
-            'Добавьте `author` для отображения в списке модели административного сайта'
+            'Добавьте `author` для отображения'
+            + ' в списке модели административного сайта'
         )
 
         assert 'text' in admin_model.search_fields, (
@@ -122,23 +145,34 @@ class TestGroup:
     def test_group_model(self):
         model_fields = Group._meta.fields
         title_field = search_field(model_fields, 'title')
-        assert title_field is not None, 'Добавьте название события `title` модели `Group`'
+        assert title_field is not None, 'Добавьте'
+        + 'название события `title` модели `Group`'
         assert type(title_field) == fields.CharField, (
-            'Свойство `title` модели `Group` должно быть символьным `CharField`'
+            'Свойство `title` модели `Group`'
+            + 'должно быть символьным `CharField`'
         )
-        assert title_field.max_length == 200, 'Задайте максимальную длину `title` модели `Group` 200'
+        assert title_field.max_length == 200, (
+            'Задайте максимальную длину `title` модели `Group` 200'
+        )
 
         slug_field = search_field(model_fields, 'slug')
-        assert slug_field is not None, 'Добавьте уникальный адрес группы `slug` модели `Group`'
+        assert slug_field is not None, (
+            'Добавьте уникальный адрес группы `slug` модели `Group`'
+        )
         assert type(slug_field) == fields.SlugField, (
             'Свойство `slug` модели `Group` должно быть `SlugField`'
         )
-        assert slug_field.unique, 'Свойство `slug` модели `Group` должно быть уникальным'
+        assert slug_field.unique, (
+            'Свойство `slug` модели `Group` должно быть уникальным'
+        )
 
         description_field = search_field(model_fields, 'description')
-        assert description_field is not None, 'Добавьте описание `description` модели `Group`'
+        assert description_field is not None, (
+            'Добавьте описание `description` модели `Group`'
+        )
         assert type(description_field) == fields.TextField, (
-            'Свойство `description` модели `Group` должно быть текстовым `TextField`'
+            'Свойство `description` модели `Group`'
+            + ' должно быть текстовым `TextField`'
         )
 
     @pytest.mark.django_db(transaction=True)
@@ -157,7 +191,9 @@ class TestGroup:
         description = 'Тестовое описание группы'
 
         assert Group.objects.count() == 0
-        group = Group.objects.create(title=title, slug=slug, description=description)
+        group = Group.objects.create(
+            title=title, slug=slug, description=description
+        )
         assert Group.objects.count() == 1
         assert Group.objects.get(slug=slug).pk == group.pk
 
@@ -173,11 +209,15 @@ class TestGroupView:
         try:
             response = client.get(f'/group/{post_with_group.group.slug}')
         except Exception as e:
-            assert False, f'''Страница `/group/<slug>/` работает неправильно. Ошибка: `{e}`'''
+            assert False, f'''Страница `/group/<slug>/`
+            работает неправильно. Ошибка: `{e}`'''
         if response.status_code in (301, 302):
             response = client.get(f'/group/{post_with_group.group.slug}/')
         if response.status_code == 404:
-            assert False, 'Страница `/group/<slug>/` не найдена, проверьте этот адрес в *urls.py*'
+            assert False, (
+                'Страница `/group/<slug>/` '
+                + 'не найдена, проверьте этот адрес в *urls.py*'
+            )
 
         if response.status_code != 200:
             assert False, 'Страница `/group/<slug>/` работает неправильно.'
@@ -204,4 +244,7 @@ class TestGroupView:
         assert re.search(
             r'<\s*p\s*>\s*' + group.description + r'\s*<\s*\/p\s*>',
             html
-        ), 'Отредактируйте HTML-шаблон, не найдено описание группы `<p>{{ описание_группы }}</p>`'
+        ), (
+            'Отредактируйте HTML-шаблон, не найдено'
+            + 'описание группы `<p>{{ описание_группы }}</p>`'
+        )
