@@ -1,9 +1,8 @@
+from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from django import forms
-
-from posts.models import Post, Group
+from posts.models import Group, Post
 
 User = get_user_model()
 TEST_POSTS_COUNT = 13

@@ -1,6 +1,7 @@
-from django.contrib import admin
-from .models import Post, Group
 from django.conf import settings
+from django.contrib import admin
+
+from .models import Group, Post
 
 
 @admin.register(Post)

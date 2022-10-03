@@ -13,11 +13,12 @@
 #  базе данных.
 # Это задание будет проверено в конце спринта
 #  вместе с домашней работой
-from posts.forms import PostForm
-from posts.models import Post, Group, User
+
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
+from posts.forms import PostForm
+from posts.models import Group, Post, User
 
 User = get_user_model()
 
