@@ -4,6 +4,8 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from posts.models import Group, Post
 
+from yatube.settings import POSTS_COUNT
+
 User = get_user_model()
 TEST_POSTS_COUNT = 13
 
@@ -56,6 +58,12 @@ class PostPagesTests(TestCase):
                 'posts:post_detail',
                 kwargs={'post_id': '1'}
             ): 'posts/post_detail.html',
+            reverse(
+                'about:author'
+            ): 'about/author.html',
+            reverse(
+                'about:tech'
+            ): 'about/tech.html',
         }
 
         for reverse_name, template in templates_pages_names.items():
@@ -67,22 +75,24 @@ class PostPagesTests(TestCase):
         """Шаблон post_detail сформирован с правильным контекстом."""
         response = (
             self.authorized_client.get(
-                reverse('posts:post_detail', kwargs={'post_id': '1'})
+                reverse(
+                    'posts:post_detail',
+                    kwargs={'post_id': f'{self.post.pk}'})
             )
         )
         self.assertEqual(response.context.get(
             'post').author.username, f'{self.post.author}')
         self.assertEqual(response.context.get(
-            'post').text, 'Тестовый пост')
+            'post').text, f'{self.post.text}')
         self.assertEqual(response.context.get(
-            'post').group.title, 'Тестовая группа')
+            'post').group.title, f'{self.group.title}')
 
     def test_form_post_create_edit_correct_context(self):
         """Шаблон form_post_create и edit
         сформированы с правильным контекстом."""
         pages = [
             reverse('posts:post_create'),
-            reverse('posts:post_edit', kwargs={'post_id': '1'}),
+            reverse('posts:post_edit', kwargs={'post_id': f'{self.post.pk}'}),
         ]
         for page in pages:
             response = self.author_client.get(page)
@@ -95,7 +105,7 @@ class PostPagesTests(TestCase):
                     form_field = response.context.get('form').fields.get(value)
                     self.assertIsInstance(form_field, expected)
 
-    def posts_places(self):
+    def test_posts_places(self):
         """
         при создании поста указать группу, то этот пост появляется
         на главной странице сайта,
@@ -109,7 +119,7 @@ class PostPagesTests(TestCase):
         )
 
         self.post = Post.objects.create(
-            author=PostPagesTests.user,
+            author=self.user,
             text='Тестовый пост',
             group=self.group_x
         )
@@ -119,29 +129,32 @@ class PostPagesTests(TestCase):
             ),
             reverse(
                 'posts:profile',
-                kwargs={'username': 'StasBasov'}
+                kwargs={'username': f'{self.user.username}'}
             ),
             reverse(
                 'posts:group_list',
-                kwargs={'slug': 'test-slug2'}
+                kwargs={'slug': f'{self.group_x.slug}'}
             ),
-            reverse(
-                'posts:group_list',
-                kwargs={'slug': 'test-slug1'}
-            )
         )
         for reverse_name in reverse_things:
             response = self.authorized_client.get(reverse_name)
-            test_obj = response.context['object_list'][0]
-            self.assertEqual(test_obj.text, 'Тестовый пост')
-            self.assertEqual(test_obj.group.title, 'Тестовая группа2')
-            self.assertEqual(test_obj.author.username, 'StasBasov')
+            test_obj = response.context['page_obj'][0]
+            self.assertEqual(
+                test_obj.text, self.post.text
+            )
+            self.assertEqual(
+                test_obj.group.title, self.group_x.title
+            )
+            self.assertEqual(
+                test_obj.author.username, self.post.author.username
+            )
 
 
 class PaginatorViewsTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.PAGE_TEST_OFFSET = 3
         cls.user = User.objects.create_user(username='auth')
         cls.group = Group.objects.create(
             title='Тестовая группа',
@@ -149,7 +162,7 @@ class PaginatorViewsTest(TestCase):
             description='test-slug2',
         )
         cls.post = []
-        for i in range(TEST_POSTS_COUNT):
+        for i in range(POSTS_COUNT + PaginatorViewsTest.PAGE_TEST_OFFSET):
             cls.post.append(
                 Post.objects.create(
                     author=cls.user,
@@ -181,7 +194,9 @@ class PaginatorViewsTest(TestCase):
         for reverse_name in reverse_list:
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name)
-                self.assertEqual(len(response.context['page_obj']), 10)
+                self.assertEqual(len(
+                    response.context['page_obj']
+                ), POSTS_COUNT)
 
     def test_second_page(self):
         reverse_list = [
@@ -200,4 +215,7 @@ class PaginatorViewsTest(TestCase):
         for reverse_name in reverse_list:
             with self.subTest(reverse_name=reverse_name):
                 response = self.authorized_client.get(reverse_name + '?page=2')
-                self.assertEqual(len(response.context['page_obj']), 3)
+                self.assertEqual(
+                    len(response.context['page_obj']),
+                    PaginatorViewsTest.PAGE_TEST_OFFSET
+                )

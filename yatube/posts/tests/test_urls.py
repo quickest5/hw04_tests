@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
@@ -37,7 +39,8 @@ class StaticURLTests(TestCase):
             f'/group/{StaticURLTests.group.slug}/': 'posts/group_list.html',
             f'/profile/{self.user}/': 'posts/profile.html',
             f'/posts/{self.post.pk}/': 'posts/post_detail.html',
-
+            '/about/author/': 'about/author.html',
+            '/about/tech/': 'about/tech.html',
 
         }
         for address, template in templates_url_names.items():
@@ -45,12 +48,12 @@ class StaticURLTests(TestCase):
                 response = self.authorized_client.get(address)
                 self.assertTemplateUsed(response, template)
 
-    def test_task_list_url_exists_at_desired_location(self):
+    def test_post_list_url_exists_at_desired_location(self):
         """Страница /create/ доступна авторизованному пользователю."""
         response = self.authorized_client.get('/create/')
         self.assertEqual(response.status_code, 200)
 
-    def test_task_detail_url_redirect_anonymous_on_admin_login(self):
+    def test_post_detail_url_redirect_authorized_not_author(self):
         """Страница по адресу /post/self.post.pk/edit
         перенаправит пользователя не автора
         """
@@ -61,3 +64,48 @@ class StaticURLTests(TestCase):
         self.assertRedirects(
             response, f'/posts/{self.post.pk}/'
         )
+
+    def test_post_detail_get_author_200(self):
+        """Страница изменения доступа автору
+        /post/self.post.pk/edit даст зайти автору
+        """
+        response = self.author_client.get(
+            f'/posts/{self.post.pk}/edit/',
+        )
+        self.assertEqual(
+            response.status_code, 200
+        )
+
+    def test_create_method_get_post(self):
+        """переадресация гостя к /create/ через GET/POST"""
+        responses_302 = (
+            '/create/',
+        )
+        for value in responses_302:
+            with self.subTest(value):
+                self.assertEqual(
+                    self.guest_client.get(value).status_code,
+                    HTTPStatus.FOUND,
+                    ('гость по ссылке /create/ метод GET '
+                     'не смог перейтиб должна быть переадресация')
+                )
+            with self.subTest(value):
+                self.assertEqual(
+                    self.guest_client.post(value).status_code,
+                    HTTPStatus.FOUND,
+                    ('гость по ссылке /create/ метод POST'
+                     ' не смог перейти, должна быть переадресация')
+                )
+
+    def test_pos_method_post(self):
+        """"""
+        responses_302 = (
+            f'/posts/{self.post.pk}/edit/',
+        )
+        for value in responses_302:
+            with self.subTest(value):
+                self.assertEqual(
+                    self.authorized_client.post(value).status_code,
+                    HTTPStatus.FOUND,
+                    ('не автора по ссылке не редиректнуло')
+                )

@@ -1,23 +1,6 @@
-# Задание
-# В проекте Yatube напишите тесты,
-# которые проверяют, что
-# при отправке валидной формы со
-# страницы создания поста
-# reverse('posts:create_post') создаётся новая
-#  запись в базе данных;
-
-# при отправке валидной формы со
-# страницы редактирования поста
-#  reverse('posts:post_edit', args=('post_id',))
-#  происходит изменение поста с post_id в
-#  базе данных.
-# Это задание будет проверено в конце спринта
-#  вместе с домашней работой
-
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from posts.forms import PostForm
 from posts.models import Group, Post, User
 
 User = get_user_model()
@@ -40,8 +23,6 @@ class PostFormTests(TestCase):
             text='Тестовый пост',
             group=cls.group
         )
-        # Создаем форму, если нужна проверка атрибутов
-        cls.form = PostForm()
 
     def setUp(self):
         # Создаем клиент
@@ -78,7 +59,8 @@ class PostFormTests(TestCase):
 
     def test_edit_post(self):
         """Валидная форма редактирует запись в Пост."""
-        posts_count = Post.objects.all().count()
+        posts_count = Post.objects.count()
+        self.post = PostFormTests.post
         form_data = {
             'group': self.group.id,
             'author': self.user.id,
@@ -90,12 +72,9 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
+        post2 = Post.objects.get(id=self.post.pk)
         self.assertEqual(Post.objects.count(), posts_count)
-        self.assertTrue(
-            Post.objects.filter(
-                text='Тест текс1т',
-                author=self.user.id,
-                group=self.group.id,
-            ).exists()
-        )
+        self.assertEqual(post2.author, self.post.author)
+        self.assertEqual(post2.group.pk, self.group.pk)
+        self.assertEqual(post2.text, 'Тест текс1т')
         self.assertEqual(response.status_code, 200)
